@@ -20,6 +20,15 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      # 新增步骤：自动下载并提取 Microsoft VC++ Runtime DLLs
+      - name: Fetch and Extract VC++ Runtime DLLs
+        run: |
+          brew install sevenzip
+          curl -L -o VC_redist.x64.exe https://aka.ms/vc14/vc_redist.x64.exe
+          7zz x VC_redist.x64.exe -o/tmp/vcredist
+          mkdir -p app/Madeira/x86_64-vcruntime
+          7zz x /tmp/vcredist/.rsrc/1033/CABINET/*.cab -oapp/Madeira/x86_64-vcruntime
+
       - name: Build Native Components
         run: |
           chmod +x build/*/build.sh || true
@@ -30,7 +39,6 @@ jobs:
 
       - name: Find and Build Xcode Project
         run: |
-          # 自动寻找 .xcodeproj 或 .xcworkspace 文件
           PROJ_FILE=$(find . -maxdepth 3 -name "*.xcodeproj" -o -name "*.xcworkspace" | head -n 1)
           
           if [ -z "$PROJ_FILE" ]; then
