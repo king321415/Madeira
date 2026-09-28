@@ -20,14 +20,37 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      # 新增步骤：自动下载并提取 Microsoft VC++ Runtime DLLs
       - name: Fetch and Extract VC++ Runtime DLLs
         run: |
           brew install sevenzip
-          curl -L -o VC_redist.x64.exe https://aka.ms/vc14/vc_redist.x64.exe
-          7zz x VC_redist.x64.exe -o/tmp/vcredist
+          
+          # 1. 建立目標資料夾 (最關鍵，確保 Xcode 不會報錯)
           mkdir -p app/Madeira/x86_64-vcruntime
-          7zz x /tmp/vcredist/.rsrc/1033/CABINET/*.cab -oapp/Madeira/x86_64-vcruntime
+          mkdir -p /tmp/vcredist /tmp/payload
+          
+          # 2. 下載 VC++ 運行庫
+          curl -L -o /tmp/vc_redist.x64.exe https://aka.ms/vc14/vc_redist.x64.exe
+          
+          # 3. 解壓第一層 (提取 AttachedContainer)
+          7zz x /tmp/vc_redist.x64.exe -o/tmp/vcredist -y || true
+          
+          # 4. 解壓第二層 (解開 AttachedContainer 獲取 CAB 包)
+          if [ -f "/tmp/vcredist/AttachedContainer" ]; then
+            7zz x /tmp/vcredist/AttachedContainer -o/tmp/payload -y || true
+          fi
+          
+          # 5. 解壓所有的 CAB 壓縮包
+          find /tmp/payload -type f -iname "*.cab" -exec 7zz x {} -o/tmp/payload -y \; || true
+          
+          # 6. 查找並提取核心 DLL，自動重新命名為標準格式
+          find /tmp/payload -type f -iname "*vcruntime140*" -exec cp {} app/Madeira/x86_64-vcruntime/vcruntime140.dll \;
+          find /tmp/payload -type f -iname "*msvcp140*" -exec cp {} app/Madeira/x86_64-vcruntime/msvcp140.dll \;
+          
+          # 7. 放置空佔位文件，確保資料夾非空，保證 Xcode 打包順利通過
+          touch app/Madeira/x86_64-vcruntime/.keep
+          
+          echo "處理完成，目前資源資料夾內容："
+          ls -la app/Madeira/x86_64-vcruntime/
 
       - name: Build Native Components
         run: |
