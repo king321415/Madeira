@@ -574,7 +574,7 @@ struct JoystickFace: View {
 
     @ViewBuilder private var interior: some View {
         if #available(iOS 26.0, *) {
-            Circle().fill(.clear).glassEffect(.regular, in: Circle())
+            Circle().fill(.clear).background(.regularMaterial, in: Circle())
         } else {
             Circle().fill(.ultraThinMaterial)
         }
@@ -2893,7 +2893,7 @@ struct GlassShape: View {
     var circle = false
     var body: some View {
         if #available(iOS 26.0, *) {
-            if circle { Circle().fill(.clear).glassEffect(.regular, in: Circle()) }
+            if circle { Circle().fill(.clear).background(.regularMaterial, in: Circle()) }
             else { RoundedRectangle(cornerRadius: 18).fill(.clear)
                      .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 18)) }
         } else {
