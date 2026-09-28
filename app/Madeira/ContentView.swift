@@ -2895,7 +2895,7 @@ struct GlassShape: View {
         if #available(iOS 26.0, *) {
             if circle { Circle().fill(.clear).background(.regularMaterial, in: Circle()) }
             else { RoundedRectangle(cornerRadius: 18).fill(.clear)
-                     .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 18)) }
+                     .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 18)) }
         } else {
             if circle { Circle().fill(.ultraThinMaterial) }
             else { RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial) }
